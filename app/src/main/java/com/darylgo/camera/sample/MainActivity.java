@@ -11,10 +11,12 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
-import android.support.annotation.Nullable;
-import android.support.annotation.WorkerThread;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
+
+import androidx.annotation.Nullable;
+import androidx.annotation.WorkerThread;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+
 import android.util.Log;
 import android.view.OrientationEventListener;
 import android.view.Surface;
@@ -274,6 +276,7 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback 
      */
     @WorkerThread
     private void openCamera(int cameraId) {
+        Log.d("dashu", "openCamera,cameraId=" + cameraId);
         Camera camera = mCamera;
         if (camera != null) {
             throw new RuntimeException("You must close previous camera before open a new one.");
@@ -428,7 +431,13 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback 
         SurfaceHolder previewSurface = mPreviewSurface;
         if (camera != null && previewSurface != null) {
             camera.setPreviewCallbackWithBuffer(new PreviewCallback());
-            camera.startPreview();
+            try {
+                camera.startPreview();
+            } catch (Exception e) {
+                e.printStackTrace();
+                Log.d(TAG, "startPreview() error"+e.getMessage());
+
+            }
             Log.d(TAG, "startPreview() called");
         }
     }
