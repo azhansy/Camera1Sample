@@ -25,6 +25,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.util.List;
@@ -255,10 +256,14 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback 
      * 初始化摄像头信息。
      */
     private void initCameraInfo() {
+        StringBuilder stringBuilder = new StringBuilder();
         int numberOfCameras = Camera.getNumberOfCameras();// 获取摄像头个数
         for (int cameraId = 0; cameraId < numberOfCameras; cameraId++) {
             Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
             Camera.getCameraInfo(cameraId, cameraInfo);
+            Log.d("dashu","数量 numberOfCameras="+numberOfCameras+",cameraId="+cameraId);
+            stringBuilder.append(cameraId);
+            stringBuilder.append(',');
             if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_BACK) {
                 // 后置摄像头信息
                 mBackCameraId = cameraId;
@@ -269,6 +274,7 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback 
                 mFrontCameraInfo = cameraInfo;
             }
         }
+        Toast.makeText(this,stringBuilder.toString(), Toast.LENGTH_LONG).show();
     }
 
     /**
@@ -430,13 +436,19 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback 
         Camera camera = mCamera;
         SurfaceHolder previewSurface = mPreviewSurface;
         if (camera != null && previewSurface != null) {
-            camera.setPreviewCallbackWithBuffer(new PreviewCallback());
+            camera.setPreviewCallbackWithBuffer(new Camera.PreviewCallback() {
+                @Override
+                public void onPreviewFrame(byte[] data, Camera camera) {
+                    // 使用完buffer之后回收复用
+                    camera.addCallbackBuffer(data);
+                }
+            });
             try {
+                camera.stopPreview();
                 camera.startPreview();
             } catch (Exception e) {
                 e.printStackTrace();
-                Log.d(TAG, "startPreview() error"+e.getMessage());
-
+                Log.d(TAG, "startPreview() error: "+e.getMessage());
             }
             Log.d(TAG, "startPreview() called");
         }
@@ -452,6 +464,8 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback 
             Camera.Parameters parameters = camera.getParameters();
             camera.setParameters(parameters);
             camera.takePicture(new ShutterCallback(), new RawCallback(), new PostviewCallback(), new JpegCallback());
+            Toast.makeText(this,"拍照成功", Toast.LENGTH_LONG).show();
+            finish();
         }
     }
 
